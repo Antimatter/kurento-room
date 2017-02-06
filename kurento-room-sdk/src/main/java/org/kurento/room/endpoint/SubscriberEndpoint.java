@@ -37,9 +37,9 @@ public class SubscriberEndpoint extends MediaEndpoint {
 
   private PublisherEndpoint publisher = null;
 
-  public SubscriberEndpoint(boolean web, Participant owner, String endpointName,
+  public SubscriberEndpoint(boolean web, Participant owner, String remoteName, String endpointName,
       MediaPipeline pipeline) {
-    super(web, false, owner, endpointName, pipeline, log);
+    super(web, false, owner, remoteName, endpointName, pipeline, log);
   }
 
   public synchronized String subscribe(String sdpOffer, PublisherEndpoint publisher) {

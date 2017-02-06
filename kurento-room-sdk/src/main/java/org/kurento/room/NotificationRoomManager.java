@@ -101,20 +101,20 @@ public class NotificationRoomManager {
    *
    * @see RoomManager#joinRoom(String, String, boolean, boolean, KurentoClientSessionInfo, String)
    */
-  public void joinRoom(String userName, String roomName, boolean dataChannels,
+  public void joinRoom(String userName, String streamId, String roomName, boolean dataChannels,
       boolean webParticipant, ParticipantRequest request) {
     Set<UserParticipant> existingParticipants = null;
     try {
       KurentoClientSessionInfo kcSessionInfo = new DefaultKurentoClientSessionInfo(
           request.getParticipantId(), roomName);
-      existingParticipants = internalManager.joinRoom(userName, roomName, dataChannels,
+      existingParticipants = internalManager.joinRoom(userName, streamId, roomName, dataChannels,
           webParticipant, kcSessionInfo, request.getParticipantId());
     } catch (RoomException e) {
       log.warn("PARTICIPANT {}: Error joining/creating room {}", userName, roomName, e);
-      notificationRoomHandler.onParticipantJoined(request, roomName, userName, null, e);
+      notificationRoomHandler.onParticipantJoined(request, roomName, userName, streamId, null, e);
     }
     if (existingParticipants != null) {
-      notificationRoomHandler.onParticipantJoined(request, roomName, userName,
+      notificationRoomHandler.onParticipantJoined(request, roomName, userName, streamId,
           existingParticipants, null);
     }
   }
@@ -150,7 +150,7 @@ public class NotificationRoomManager {
    * @see RoomManager#publishMedia(String, boolean, String, MediaElement, MediaType, boolean,
    *      MediaElement...)
    */
-  public void publishMedia(ParticipantRequest request, boolean isOffer, String sdp,
+  public void publishMedia(ParticipantRequest request, String streamId, boolean isOffer, String sdp,
       MediaElement loopbackAlternativeSrc, MediaType loopbackConnectionType, boolean doLoopback,
       MediaElement... mediaElements) {
     String pid = request.getParticipantId();
@@ -159,15 +159,15 @@ public class NotificationRoomManager {
     String sdpAnswer = null;
     try {
       userName = internalManager.getParticipantName(pid);
-      sdpAnswer = internalManager.publishMedia(request.getParticipantId(), isOffer, sdp,
+      sdpAnswer = internalManager.publishMedia(request.getParticipantId(), streamId, isOffer, sdp,
           loopbackAlternativeSrc, loopbackConnectionType, doLoopback, mediaElements);
       participants = internalManager.getParticipants(internalManager.getRoomName(pid));
     } catch (RoomException e) {
       log.warn("PARTICIPANT {}: Error publishing media", userName, e);
-      notificationRoomHandler.onPublishMedia(request, null, null, null, e);
+      notificationRoomHandler.onPublishMedia(request, null, null, null, null, e);
     }
     if (sdpAnswer != null) {
-      notificationRoomHandler.onPublishMedia(request, userName, sdpAnswer, participants, null);
+      notificationRoomHandler.onPublishMedia(request, userName, streamId, sdpAnswer, participants, null);
     }
   }
 
@@ -177,9 +177,9 @@ public class NotificationRoomManager {
    *
    * @see RoomManager#publishMedia(String, String, boolean, MediaElement...)
    */
-  public void publishMedia(ParticipantRequest request, String sdpOffer, boolean doLoopback,
+  public void publishMedia(ParticipantRequest request, String streamId, String sdpOffer, boolean doLoopback,
       MediaElement... mediaElements) {
-    this.publishMedia(request, true, sdpOffer, null, null, doLoopback, mediaElements);
+    this.publishMedia(request, streamId, true, sdpOffer, null, null, doLoopback, mediaElements);
   }
 
   /**
@@ -188,22 +188,22 @@ public class NotificationRoomManager {
    *
    * @see RoomManager#unpublishMedia(String)
    */
-  public void unpublishMedia(ParticipantRequest request) {
+  public void unpublishMedia(ParticipantRequest request, String streamId) {
     String pid = request.getParticipantId();
     String userName = null;
     Set<UserParticipant> participants = null;
     boolean unpublished = false;
     try {
       userName = internalManager.getParticipantName(pid);
-      internalManager.unpublishMedia(pid);
+      internalManager.unpublishMedia(pid, streamId);
       unpublished = true;
       participants = internalManager.getParticipants(internalManager.getRoomName(pid));
     } catch (RoomException e) {
       log.warn("PARTICIPANT {}: Error unpublishing media", userName, e);
-      notificationRoomHandler.onUnpublishMedia(request, null, null, e);
+      notificationRoomHandler.onUnpublishMedia(request, null, null, null, e);
     }
     if (unpublished) {
-      notificationRoomHandler.onUnpublishMedia(request, userName, participants, null);
+      notificationRoomHandler.onUnpublishMedia(request, userName, streamId, participants, null);
     }
   }
 
@@ -213,19 +213,19 @@ public class NotificationRoomManager {
    *
    * @see RoomManager#subscribe(String, String, String)
    */
-  public void subscribe(String remoteName, String sdpOffer, ParticipantRequest request) {
+  public void subscribe(String remoteName, String streamId, String sdpOffer, ParticipantRequest request) {
     String pid = request.getParticipantId();
     String userName = null;
     String sdpAnswer = null;
     try {
       userName = internalManager.getParticipantName(pid);
-      sdpAnswer = internalManager.subscribe(remoteName, sdpOffer, pid);
+      sdpAnswer = internalManager.subscribe(remoteName, streamId, sdpOffer, pid);
     } catch (RoomException e) {
       log.warn("PARTICIPANT {}: Error subscribing to {}", userName, remoteName, e);
-      notificationRoomHandler.onSubscribe(request, null, e);
+      notificationRoomHandler.onSubscribe(request, null, null, e);
     }
     if (sdpAnswer != null) {
-      notificationRoomHandler.onSubscribe(request, sdpAnswer, null);
+      notificationRoomHandler.onSubscribe(request, streamId, sdpAnswer, null);
     }
   }
 
@@ -235,33 +235,33 @@ public class NotificationRoomManager {
    * @param request
    *          instance of {@link ParticipantRequest} POJO
    */
-  public void unsubscribe(String remoteName, ParticipantRequest request) {
+  public void unsubscribe(String remoteName, String streamId, ParticipantRequest request) {
     String pid = request.getParticipantId();
     String userName = null;
     boolean unsubscribed = false;
     try {
       userName = internalManager.getParticipantName(pid);
-      internalManager.unsubscribe(remoteName, pid);
+      internalManager.unsubscribe(remoteName, streamId, pid);
       unsubscribed = true;
     } catch (RoomException e) {
       log.warn("PARTICIPANT {}: Error unsubscribing from {}", userName, remoteName, e);
-      notificationRoomHandler.onUnsubscribe(request, e);
+      notificationRoomHandler.onUnsubscribe(request, null, e);
     }
     if (unsubscribed) {
-      notificationRoomHandler.onUnsubscribe(request, null);
+      notificationRoomHandler.onUnsubscribe(request, streamId, null);
     }
   }
 
   /**
    * @see RoomManager#onIceCandidate(String, String, int, String, String)
    */
-  public void onIceCandidate(String endpointName, String candidate, int sdpMLineIndex,
+  public void onIceCandidate(String endpointName, String streamId, String candidate, int sdpMLineIndex,
       String sdpMid, ParticipantRequest request) {
     String pid = request.getParticipantId();
     String userName = null;
     try {
       userName = internalManager.getParticipantName(pid);
-      internalManager.onIceCandidate(endpointName, candidate, sdpMLineIndex, sdpMid,
+      internalManager.onIceCandidate(endpointName, streamId, candidate, sdpMLineIndex, sdpMid,
           request.getParticipantId());
       notificationRoomHandler.onRecvIceCandidate(request, null);
     } catch (RoomException e) {
@@ -399,60 +399,60 @@ public class NotificationRoomManager {
   /**
    * @see RoomManager#generatePublishOffer(String)
    */
-  public String generatePublishOffer(String participantId) throws RoomException {
-    return internalManager.generatePublishOffer(participantId);
+  public String generatePublishOffer(String participantId, String streamId) throws RoomException {
+    return internalManager.generatePublishOffer(participantId, streamId);
   }
 
   /**
    * @see RoomManager#addMediaElement(String, MediaElement)
    */
-  public void addMediaElement(String participantId, MediaElement element) throws RoomException {
-    internalManager.addMediaElement(participantId, element);
+  public void addMediaElement(String participantId, String streamId, MediaElement element) throws RoomException {
+    internalManager.addMediaElement(participantId, streamId, element);
   }
 
   /**
    * @see RoomManager#addMediaElement(String, MediaElement, MediaType)
    */
-  public void addMediaElement(String participantId, MediaElement element, MediaType type)
+  public void addMediaElement(String participantId, String streamId, MediaElement element, MediaType type)
       throws RoomException {
-    internalManager.addMediaElement(participantId, element, type);
+    internalManager.addMediaElement(participantId, streamId, element, type);
   }
 
   /**
    * @see RoomManager#removeMediaElement(String, MediaElement)
    */
-  public void removeMediaElement(String participantId, MediaElement element) throws RoomException {
-    internalManager.removeMediaElement(participantId, element);
+  public void removeMediaElement(String participantId, String streamId, MediaElement element) throws RoomException {
+    internalManager.removeMediaElement(participantId, streamId, element);
   }
 
   /**
    * @see RoomManager#mutePublishedMedia(MutedMediaType, String)
    */
-  public void mutePublishedMedia(MutedMediaType muteType, String participantId)
+  public void mutePublishedMedia(String streamId, MutedMediaType muteType, String participantId)
       throws RoomException {
-    internalManager.mutePublishedMedia(muteType, participantId);
+    internalManager.mutePublishedMedia(streamId, muteType, participantId);
   }
 
   /**
    * @see RoomManager#unmutePublishedMedia(String)
    */
-  public void unmutePublishedMedia(String participantId) throws RoomException {
-    internalManager.unmutePublishedMedia(participantId);
+  public void unmutePublishedMedia(String streamId, String participantId) throws RoomException {
+    internalManager.unmutePublishedMedia(streamId, participantId);
   }
 
   /**
    * @see RoomManager#muteSubscribedMedia(String, MutedMediaType, String)
    */
-  public void muteSubscribedMedia(String remoteName, MutedMediaType muteType, String participantId)
+  public void muteSubscribedMedia(String remoteName, String streamId, MutedMediaType muteType, String participantId)
       throws RoomException {
-    internalManager.muteSubscribedMedia(remoteName, muteType, participantId);
+    internalManager.muteSubscribedMedia(remoteName, streamId, muteType, participantId);
   }
 
   /**
    * @see RoomManager#unmuteSubscribedMedia(String, String)
    */
-  public void unmuteSubscribedMedia(String remoteName, String participantId) throws RoomException {
-    internalManager.unmuteSubscribedMedia(remoteName, participantId);
+  public void unmuteSubscribedMedia(String remoteName, String streamId, String participantId) throws RoomException {
+    internalManager.unmuteSubscribedMedia(remoteName, streamId, participantId);
   }
 
   public RoomManager getRoomManager() {

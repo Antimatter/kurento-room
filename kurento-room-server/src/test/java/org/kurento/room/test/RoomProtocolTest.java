@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -126,10 +127,12 @@ public class RoomProtocolTest {
 
         log.debug("joinRoom -> {} to {}, preq: {}", userName, roomName, preq);
 
-        roomEventHandler.onParticipantJoined(preq, roomName, userName, existingParticipants, null);
+        roomEventHandler.onParticipantJoined(preq, roomName, userName, "webcam", existingParticipants, null);
 
         if (userName.equalsIgnoreCase("user0")) {
-          existingParticipants.add(new UserParticipant(preq.getParticipantId(), "user0", true));
+          ArrayList<String> streams = new ArrayList<String>(); streams.add("webcam");
+          ArrayList<Boolean> streaming = new ArrayList<Boolean>(); streaming.add(true);
+          existingParticipants.add(new UserParticipant(preq.getParticipantId(), "user0", streams, streaming));
         }
 
         return null;

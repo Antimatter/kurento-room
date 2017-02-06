@@ -55,7 +55,7 @@ public class PublisherEndpoint extends MediaEndpoint {
 
   public PublisherEndpoint(boolean web, boolean dataChannels, Participant owner,
       String endpointName, MediaPipeline pipeline) {
-    super(web, dataChannels, owner, endpointName, pipeline, log);
+    super(web, dataChannels, owner, owner.getName(), endpointName, pipeline, log);
   }
 
   @Override

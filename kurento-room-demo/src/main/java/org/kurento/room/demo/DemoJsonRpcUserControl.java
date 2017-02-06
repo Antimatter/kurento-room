@@ -40,6 +40,7 @@ public class DemoJsonRpcUserControl extends JsonRpcUserControl {
   private static final String SESSION_ATTRIBUTE_HAT_FILTER = "hatFilter";
 
   private static final String CUSTOM_REQUEST_HAT_PARAM = "hat";
+  private static final String CUSTOM_REQUEST_HAT_STREAMID_PARAM = "streamId";
 
   private static final Logger log = LoggerFactory.getLogger(DemoJsonRpcUserControl.class);
 
@@ -85,6 +86,7 @@ public class DemoJsonRpcUserControl extends JsonRpcUserControl {
         throw new RuntimeException("Request element '" + CUSTOM_REQUEST_HAT_PARAM + "' is missing");
       }
       boolean hatOn = request.getParams().get(CUSTOM_REQUEST_HAT_PARAM).getAsBoolean();
+      String streamId = request.getParams().get(CUSTOM_REQUEST_HAT_STREAMID_PARAM).getAsString();
       String pid = participantRequest.getParticipantId();
       if (hatOn) {
         if (transaction.getSession().getAttributes().containsKey(SESSION_ATTRIBUTE_HAT_FILTER)) {
@@ -95,7 +97,7 @@ public class DemoJsonRpcUserControl extends JsonRpcUserControl {
             roomManager.getPipeline(pid)).build();
         faceOverlayFilter.setOverlayedImage(this.hatUrl, this.offsetXPercent, this.offsetYPercent,
             this.widthPercent, this.heightPercent);
-        roomManager.addMediaElement(pid, faceOverlayFilter);
+        roomManager.addMediaElement(pid, streamId, faceOverlayFilter);
         transaction.getSession().getAttributes()
         .put(SESSION_ATTRIBUTE_HAT_FILTER, faceOverlayFilter);
       } else {
@@ -103,7 +105,7 @@ public class DemoJsonRpcUserControl extends JsonRpcUserControl {
           throw new RuntimeException("This user has no hat filter yet");
         }
         log.info("Removing face overlay filter from session {}", pid);
-        roomManager.removeMediaElement(pid, (MediaElement) transaction.getSession().getAttributes()
+        roomManager.removeMediaElement(pid, streamId, (MediaElement) transaction.getSession().getAttributes()
             .get(SESSION_ATTRIBUTE_HAT_FILTER));
         transaction.getSession().getAttributes().remove(SESSION_ATTRIBUTE_HAT_FILTER);
       }

@@ -34,29 +34,36 @@ public class ProtocolElements {
 
   public static final String JOINROOM_METHOD = "joinRoom";
   public static final String JOINROOM_USER_PARAM = "user";
+  public static final String JOINROOM_STREAMID_PARAM = "streamId";
   public static final String JOINROOM_ROOM_PARAM = "room";
   public static final String JOINROOM_DATACHANNELS_PARAM = "dataChannels";
   public static final String JOINROOM_PEERID_PARAM = "id";
   public static final String JOINROOM_PEERSTREAMS_PARAM = "streams";
-  public static final String JOINROOM_PEERSTREAMID_PARAM = "id";
+  public static final String JOINROOM_PEERSTREAMID_PARAM = "streamId";
 
   public static final String PUBLISHVIDEO_METHOD = "publishVideo";
+  public static final String PUBLISHVIDEO_STREAMID_PARAM = "streamId";
   public static final String PUBLISHVIDEO_SDPOFFER_PARAM = "sdpOffer";
   public static final String PUBLISHVIDEO_DOLOOPBACK_PARAM = "doLoopback";
   public static final String PUBLISHVIDEO_SDPANSWER_PARAM = "sdpAnswer";
 
   public static final String UNPUBLISHVIDEO_METHOD = "unpublishVideo";
+  public static final String UNPUBLISHVIDEO_STREAMID_PARAM = "streamId";
 
   public static final String RECEIVEVIDEO_METHOD = "receiveVideoFrom";
+  public static final String RECEIVEVIDEO_STREAMID_PARAM = "streamId";
   public static final String RECEIVEVIDEO_SDPOFFER_PARAM = "sdpOffer";
   public static final String RECEIVEVIDEO_SENDER_PARAM = "sender";
   public static final String RECEIVEVIDEO_SDPANSWER_PARAM = "sdpAnswer";
 
   public static final String UNSUBSCRIBEFROMVIDEO_METHOD = "unsubscribeFromVideo";
   public static final String UNSUBSCRIBEFROMVIDEO_SENDER_PARAM = "sender";
+  public static final String UNSUBSCRIBEFROMVIDEO_STREAMID_PARAM = "streamId";
+  
 
   public static final String ONICECANDIDATE_METHOD = "onIceCandidate";
   public static final String ONICECANDIDATE_EPNAME_PARAM = "endpointName";
+  public static final String ONICECANDIDATE_STREAMID_PARAM = "streamId";
   public static final String ONICECANDIDATE_CANDIDATE_PARAM = "candidate";
   public static final String ONICECANDIDATE_SDPMIDPARAM = "sdpMid";
   public static final String ONICECANDIDATE_SDPMLINEINDEX_PARAM = "sdpMLineIndex";
@@ -76,10 +83,11 @@ public class ProtocolElements {
   public static final String PARTICIPANTPUBLISHED_METHOD = "participantPublished";
   public static final String PARTICIPANTPUBLISHED_USER_PARAM = "id";
   public static final String PARTICIPANTPUBLISHED_STREAMS_PARAM = "streams";
-  public static final String PARTICIPANTPUBLISHED_STREAMID_PARAM = "id";
+  public static final String PARTICIPANTPUBLISHED_STREAMID_PARAM = "streamId"; //"id";
 
   public static final String PARTICIPANTUNPUBLISHED_METHOD = "participantUnpublished";
   public static final String PARTICIPANTUNPUBLISHED_NAME_PARAM = "name";
+  public static final String PARTICIPANTUNPUBLISHED_STREAMID_PARAM = "streamId";
 
   public static final String PARTICIPANTSENDMESSAGE_METHOD = "sendMessage";
   public static final String PARTICIPANTSENDMESSAGE_USER_PARAM = "user";
@@ -94,6 +102,7 @@ public class ProtocolElements {
 
   public static final String ICECANDIDATE_METHOD = "iceCandidate";
   public static final String ICECANDIDATE_EPNAME_PARAM = "endpointName";
+  public static final String ICECANDIDATE_STREAMID_PARAM = "streamId";
   public static final String ICECANDIDATE_CANDIDATE_PARAM = "candidate";
   public static final String ICECANDIDATE_SDPMID_PARAM = "sdpMid";
   public static final String ICECANDIDATE_SDPMLINEINDEX_PARAM = "sdpMLineIndex";

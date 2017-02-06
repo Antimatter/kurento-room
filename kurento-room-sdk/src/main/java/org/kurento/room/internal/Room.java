@@ -87,7 +87,7 @@ public class Room {
     return this.pipeline;
   }
 
-  public void join(String participantId, String userName, boolean dataChannels,
+  public void join(String participantId, String streamId, String userName, boolean dataChannels,
       boolean webParticipant) throws RoomException {
 
     checkClosed();
@@ -104,13 +104,13 @@ public class Room {
 
     createPipeline();
 
-    participants.put(participantId, new Participant(participantId, userName, this, getPipeline(),
+    participants.put(participantId, new Participant(participantId, userName, streamId, this, getPipeline(),
         dataChannels, webParticipant));
 
     log.info("ROOM {}: Added participant {}", name, userName);
   }
 
-  public void newPublisher(Participant participant) {
+  public void newPublisher(Participant participant, String streamId) {
     registerPublisher();
 
     // pre-load endpoints to recv video from the new publisher
@@ -118,14 +118,13 @@ public class Room {
       if (participant.equals(participant1)) {
         continue;
       }
-      participant1.getNewOrExistingSubscriber(participant.getName());
+      participant1.getNewOrExistingSubscriber(participant.getName(), streamId);
+      log.debug("ROOM {}: Virtually subscribed other participant {} to new publisher {} {}", name,
+    	        participant1.getName(), participant.getName(), streamId);
     }
-
-    log.debug("ROOM {}: Virtually subscribed other participants {} to new publisher {}", name,
-        participants.values(), participant.getName());
   }
 
-  public void cancelPublisher(Participant participant) {
+  public void cancelPublisher(Participant participant, String streamId) {
     deregisterPublisher();
 
     // cancel recv video from this publisher
@@ -133,7 +132,7 @@ public class Room {
       if (participant.equals(subscriber)) {
         continue;
       }
-      subscriber.cancelReceivingMedia(participant.getName());
+      subscriber.cancelReceivingMedia(participant.getName(), streamId);
     }
 
     log.debug("ROOM {}: Unsubscribed other participants {} from the publisher {}", name,
@@ -151,8 +150,10 @@ public class Room {
           + " not found in room '" + name + "'");
     }
     log.info("PARTICIPANT {}: Leaving room {}", participant.getName(), this.name);
-    if (participant.isStreaming()) {
-      this.deregisterPublisher();
+    for(MediaStream stream : participant.getStreams()) {
+    	if (participant.isStreaming(stream.name)) {
+    		this.deregisterPublisher();
+    	}
     }
     this.removeParticipant(participant);
     participant.close();
@@ -215,8 +216,8 @@ public class Room {
     }
   }
 
-  public void sendIceCandidate(String participantId, String endpointName, IceCandidate candidate) {
-    this.roomHandler.onIceCandidate(name, participantId, endpointName, candidate);
+  public void sendIceCandidate(String participantId, String remoteName, String streamId, IceCandidate candidate) {
+    this.roomHandler.onIceCandidate(name, participantId, remoteName, streamId, candidate);
   }
 
   public void sendMediaError(String participantId, String description) {
@@ -242,7 +243,9 @@ public class Room {
     log.debug("ROOM {}: Cancel receiving media from user '{}' for other users", this.name,
         participant.getName());
     for (Participant other : participants.values()) {
-      other.cancelReceivingMedia(participant.getName());
+    	for (MediaStream stream : participant.getStreams()) {
+    		other.cancelReceivingMedia(participant.getName(), stream.name);
+    	}
     }
   }
 

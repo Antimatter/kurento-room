@@ -55,6 +55,7 @@ public abstract class MediaEndpoint {
 
   private Participant owner;
   private String endpointName;
+  private String participantName;
 
   private MediaPipeline pipeline = null;
   private ListenerSubscription endpointSubscription = null;
@@ -73,7 +74,7 @@ public abstract class MediaEndpoint {
    * @param pipeline
    * @param log
    */
-  public MediaEndpoint(boolean web, boolean dataChannels, Participant owner, String endpointName,
+  public MediaEndpoint(boolean web, boolean dataChannels, Participant owner, String participantName, String endpointName,
       MediaPipeline pipeline, Logger log) {
     if (log == null) {
       MediaEndpoint.log = LoggerFactory.getLogger(MediaEndpoint.class);
@@ -83,6 +84,7 @@ public abstract class MediaEndpoint {
     this.web = web;
     this.dataChannels = dataChannels;
     this.owner = owner;
+    this.setParticipantName(participantName);
     this.setEndpointName(endpointName);
     this.setMediaPipeline(pipeline);
   }
@@ -166,6 +168,10 @@ public abstract class MediaEndpoint {
   public String getEndpointName() {
     return endpointName;
   }
+  
+  public String getParticipantName() {
+	  return participantName;
+  }
 
   /**
    * Sets the endpoint's name (as indicated by the browser).
@@ -175,6 +181,10 @@ public abstract class MediaEndpoint {
    */
   public void setEndpointName(String endpointName) {
     this.endpointName = endpointName;
+  }
+  
+  public void setParticipantName(String participantName) {
+	  this.participantName = participantName;
   }
 
   /**
@@ -418,7 +428,9 @@ public abstract class MediaEndpoint {
     webEndpoint.addOnIceCandidateListener(new EventListener<OnIceCandidateEvent>() {
       @Override
       public void onEvent(OnIceCandidateEvent event) {
-        owner.sendIceCandidate(endpointName, event.getCandidate());
+    	  log.debug("EP {}: sendIceCandidate owner {}, ep: {} {} ============================", 
+    			  endpointName, owner.getName(), participantName, endpointName);
+        owner.sendIceCandidate(participantName, endpointName, event.getCandidate());
       }
     });
   }

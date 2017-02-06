@@ -57,7 +57,7 @@ public interface NotificationRoomHandler extends RoomHandler {
    *          instance of {@link RoomException} POJO, includes a code and error message. If not
    *          null, then the join was unsuccessful and the user should be responded accordingly.
    */
-  void onParticipantJoined(ParticipantRequest request, String roomName, String newUserName,
+  void onParticipantJoined(ParticipantRequest request, String roomName, String newUserName, String streamId,
       Set<UserParticipant> existingParticipants, RoomException error);
 
   /**
@@ -115,7 +115,7 @@ public interface NotificationRoomHandler extends RoomHandler {
    *          null, then the operation was unsuccessful and the user should be responded
    *          accordingly.
    */
-  void onPublishMedia(ParticipantRequest request, String publisherName, String sdpAnswer,
+  void onPublishMedia(ParticipantRequest request, String publisherName, String streamId, String sdpAnswer,
       Set<UserParticipant> participants, RoomException error);
 
   /**
@@ -135,7 +135,7 @@ public interface NotificationRoomHandler extends RoomHandler {
    *          null, then the operation was unsuccessful and the user should be responded
    *          accordingly.
    */
-  void onUnpublishMedia(ParticipantRequest request, String publisherName,
+  void onUnpublishMedia(ParticipantRequest request, String publisherName, String streamId,
       Set<UserParticipant> participants, RoomException error);
 
   /**
@@ -152,7 +152,7 @@ public interface NotificationRoomHandler extends RoomHandler {
    *          null, then the operation was unsuccessful and the user should be responded
    *          accordingly.
    */
-  void onSubscribe(ParticipantRequest request, String sdpAnswer, RoomException error);
+  void onSubscribe(ParticipantRequest request, String streamId, String sdpAnswer, RoomException error);
 
   /**
    * Called as a result of {@link NotificationRoomManager#unsubscribe(String, ParticipantRequest)}.
@@ -165,7 +165,7 @@ public interface NotificationRoomHandler extends RoomHandler {
    *          null, then the operation was unsuccessful and the user should be responded
    *          accordingly.
    */
-  void onUnsubscribe(ParticipantRequest request, RoomException error);
+  void onUnsubscribe(ParticipantRequest request, String streamId, RoomException error);
 
   /**
    * Called as a result of

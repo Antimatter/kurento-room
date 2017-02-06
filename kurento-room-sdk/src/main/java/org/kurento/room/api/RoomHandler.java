@@ -41,7 +41,7 @@ public interface RoomHandler {
    * @param candidate
    *          the gathered {@link IceCandidate}
    */
-  void onIceCandidate(String roomName, String participantId, String endpoint, IceCandidate candidate);
+  void onIceCandidate(String roomName, String participantId, String remote, String streamId, IceCandidate candidate);
 
   /**
    * Called as a result of an error intercepted on a media element of a participant. The participant

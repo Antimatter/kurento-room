@@ -318,7 +318,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
         eq(ProtocolElements.PARTICIPANTJOINED_METHOD), Matchers.isA(JsonObject.class));
 
     for (Entry<String, String> userRoom : usersRooms.entrySet()) {
-      manager.joinRoom(userRoom.getKey(), userRoom.getValue(), false, true,
+      manager.joinRoom(userRoom.getKey(), userRoom.getValue(), "webcam", false, true,
           usersParticipantRequests.get(userRoom.getKey()));
     }
     // verifies create media pipeline was called once for each new room
@@ -856,7 +856,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
     }).when(notificationService).sendErrorResponse(Matchers.any(ParticipantRequest.class), any(),
         Matchers.any(RoomException.class));
 
-    manager.joinRoom(user, room, false, true, participantRequest);
+    manager.joinRoom(user, room, "webcam", false, true, participantRequest);
 
     // verifies create media pipeline was called once
     verify(kurentoClient, times(1)).createMediaPipeline(kurentoClientCaptor.capture());
@@ -888,7 +888,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
 
     for (ParticipantRequest subscriber : usersParticipantRequests.values()) {
       if (!subscriber.equals(publisher)) {
-        manager.subscribe(publisher.getParticipantId(), SDP_OFFER, subscriber);
+        manager.subscribe(publisher.getParticipantId(), "webcam", SDP_OFFER, subscriber);
       }
     }
   }
@@ -916,7 +916,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
 
     for (ParticipantRequest subscriber : usersParticipantRequests.values()) {
       if (!subscriber.equals(publisher)) {
-        manager.unsubscribe(publisher.getParticipantId(), subscriber);
+        manager.unsubscribe(publisher.getParticipantId(), "webcam", subscriber);
       }
     }
   }
@@ -971,7 +971,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
     }).when(notificationService).sendResponse(eq(participantRequest),
         Matchers.isA(JsonObject.class));
 
-    manager.publishMedia(participantRequest, SDP_OFFER, false);
+    manager.publishMedia(participantRequest, "webcam", SDP_OFFER, false);
   }
 
   private void participantUnpublish(final ParticipantRequest participantRequest) {
@@ -1016,7 +1016,7 @@ public class NotificationRoomManagerWithDefaultHandlerTest {
     }).when(notificationService).sendResponse(eq(participantRequest),
         Matchers.isA(JsonObject.class));
 
-    manager.unpublishMedia(participantRequest);
+    manager.unpublishMedia(participantRequest, "webcam");
   }
 
   private void verifyNotificationService(int responses, int errorResponses, int notifications,

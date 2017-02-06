@@ -510,7 +510,7 @@ public class RoomManagerTest {
     for (Entry<String, String> userRoom : usersRooms.entrySet()) {
       String user = userRoom.getKey();
       final String room = userRoom.getValue();
-      Set<UserParticipant> peers = manager.joinRoom(user, room, false, true,
+      Set<UserParticipant> peers = manager.joinRoom(user, "webcam", room, false, true,
           new KurentoClientSessionInfo() {
         @Override
         public String getRoomName() {
@@ -557,19 +557,19 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
 
-    manager.unpublishMedia(participantId0);
+    manager.unpublishMedia(participantId0, "webcam");
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     // peers are automatically unsubscribed
@@ -581,17 +581,17 @@ public class RoomManagerTest {
     joinManyWebUsersAndOneRTP();
 
     assertEquals("SDP RTP answer doesn't match", SDP_RTP_ANSWER,
-        manager.publishMedia(pidx, true, SDP_RTP_OFFER, false));
+        manager.publishMedia(pidx, "webcam", true, SDP_RTP_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
     for (String pid : usersParticipantIds.values()) {
       assertEquals("SDP WEB answer (for the web peer) doesn't match", SDP_WEB_ANSWER,
-          manager.subscribe(userx, SDP_WEB_OFFER, pid));
+          manager.subscribe(userx, "webcam", SDP_WEB_OFFER, pid));
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length));
 
-    manager.unpublishMedia(pidx);
+    manager.unpublishMedia(pidx, "webcam");
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     // peers are automatically unsubscribed
@@ -605,24 +605,24 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP server offer doesn't match", SDP_WEB_SERVER_OFFER,
-        manager.generatePublishOffer(participantId0));
+        manager.generatePublishOffer(participantId0, "webcam"));
 
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     assertEquals("SDP updated offer doesn't match", SDP_WEB_SERVER_UPDATED_OFFER,
-        manager.publishMedia(participantId0, false, SDP_WEB_PEER_ANSWER, false));
+        manager.publishMedia(participantId0, "webcam", false, SDP_WEB_PEER_ANSWER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
 
-    manager.unpublishMedia(participantId0);
+    manager.unpublishMedia(participantId0, "webcam");
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     // peers are automatically unsubscribed
@@ -636,7 +636,7 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -648,7 +648,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -681,12 +681,12 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP server offer doesn't match", SDP_WEB_SERVER_OFFER,
-        manager.generatePublishOffer(participantId0));
+        manager.generatePublishOffer(participantId0, "webcam"));
 
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     assertEquals("SDP updated offer doesn't match", SDP_WEB_SERVER_UPDATED_OFFER,
-        manager.publishMedia(participantId0, false, SDP_WEB_PEER_ANSWER, false));
+        manager.publishMedia(participantId0, "webcam", false, SDP_WEB_PEER_ANSWER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -698,7 +698,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -733,7 +733,7 @@ public class RoomManagerTest {
     exception.expectMessage(containsString("Loopback connection error test"));
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, true));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, true));
 
     assertThat(manager.getPublishers(roomx).size(), is(0));
     assertThat(manager.getSubscribers(roomx).size(), is(0));
@@ -746,7 +746,7 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, true));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, true));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -758,7 +758,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -789,12 +789,12 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP server offer doesn't match", SDP_WEB_SERVER_OFFER,
-        manager.generatePublishOffer(participantId0));
+        manager.generatePublishOffer(participantId0, "webcam"));
 
     assertThat(manager.getPublishers(roomx).size(), is(0));
 
     assertEquals("SDP updated offer doesn't match", SDP_WEB_SERVER_UPDATED_OFFER,
-        manager.publishMedia(participantId0, false, SDP_WEB_PEER_ANSWER, true));
+        manager.publishMedia(participantId0, "webcam", false, SDP_WEB_PEER_ANSWER, true));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -806,7 +806,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -838,7 +838,7 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, hb, null, true));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, hb, null, true));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -853,7 +853,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -885,7 +885,7 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, hb, MediaType.AUDIO, true));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, hb, MediaType.AUDIO, true));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -903,7 +903,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -929,7 +929,7 @@ public class RoomManagerTest {
     String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -941,7 +941,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -952,12 +952,12 @@ public class RoomManagerTest {
     verify(passThru, times(users.length - 1)).connect(any(MediaElement.class),
         passThruConnectCaptor.capture());
 
-    manager.mutePublishedMedia(MutedMediaType.ALL, participantId0);
+    manager.mutePublishedMedia("webcam", MutedMediaType.ALL, participantId0);
 
     // disconnects once from the PassThrough
     verify(endpoint).disconnect(passThru, webRtcDisconnectCaptor.getValue());
 
-    manager.unmutePublishedMedia(participantId0);
+    manager.unmutePublishedMedia("webcam", participantId0);
 
     // reconnects once to the PassThrough
     verify(endpoint).connect(passThru, webRtcConnectCaptor.getValue());
@@ -980,7 +980,7 @@ public class RoomManagerTest {
     String participantId1 = usersParticipantIds.get(users[1]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -992,7 +992,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -1003,12 +1003,12 @@ public class RoomManagerTest {
     verify(passThru, times(users.length - 1)).connect(any(MediaElement.class),
         passThruConnectCaptor.capture());
 
-    manager.muteSubscribedMedia(users[0], MutedMediaType.ALL, participantId1);
+    manager.muteSubscribedMedia(users[0], "webcam", MutedMediaType.ALL, participantId1);
 
     // disconnects the PassThrough once from the subscriber's endpoint
     verify(passThru).disconnect(endpoint, passThruDisconnectCaptor.getValue());
 
-    manager.unmuteSubscribedMedia(users[0], participantId1);
+    manager.unmuteSubscribedMedia(users[0], "webcam", participantId1);
 
     // reconnects once to the subscriber's endpoint
     verify(passThru).connect(endpoint, passThruConnectCaptor.getValue());
@@ -1040,7 +1040,7 @@ public class RoomManagerTest {
       @Override
       public Void call() throws Exception {
         System.out.println("Starting execution of addMediaElement");
-        manager.addMediaElement(participantId0, filter);
+        manager.addMediaElement(participantId0, "webcam", filter);
         return null;
       }
     });
@@ -1048,7 +1048,7 @@ public class RoomManagerTest {
     Thread.sleep(10);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -1058,7 +1058,7 @@ public class RoomManagerTest {
         continue;
       }
       assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-          manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+          manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       if (firstSubscriber) {
         firstSubscriber = false;
         try {
@@ -1097,18 +1097,18 @@ public class RoomManagerTest {
     final String participantId0 = usersParticipantIds.get(users[0]);
 
     System.out.println("Starting execution of addMediaElement");
-    manager.addMediaElement(participantId0, filter);
+    manager.addMediaElement(participantId0, "webcam", filter);
     System.out.println("Execution of addMediaElement ended");
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -1133,7 +1133,7 @@ public class RoomManagerTest {
     final String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -1143,7 +1143,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -1185,7 +1185,7 @@ public class RoomManagerTest {
 
         return null;
       }
-    }).when(roomHandler).onIceCandidate(anyString(), anyString(), anyString(),
+    }).when(roomHandler).onIceCandidate(anyString(), anyString(), anyString(), "webcam", 
         Matchers.any(IceCandidate.class));
 
     // triggers the last captured listener
@@ -1194,7 +1194,7 @@ public class RoomManagerTest {
 
     // verifies the handler's method was called once (we only triggered the
     // event once)
-    verify(roomHandler, times(1)).onIceCandidate(anyString(), anyString(), anyString(),
+    verify(roomHandler, times(1)).onIceCandidate(anyString(), anyString(), anyString(), "webcam",
         Matchers.any(IceCandidate.class));
   }
 
@@ -1205,7 +1205,7 @@ public class RoomManagerTest {
     final String participantId0 = usersParticipantIds.get(users[0]);
 
     assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-        manager.publishMedia(participantId0, true, SDP_WEB_OFFER, false));
+        manager.publishMedia(participantId0, "webcam", true, SDP_WEB_OFFER, false));
 
     assertThat(manager.getPublishers(roomx).size(), is(1));
 
@@ -1246,7 +1246,7 @@ public class RoomManagerTest {
     for (String pid : usersParticipantIds.values()) {
       if (!pid.equals(participantId0)) {
         assertEquals("SDP answer doesn't match", SDP_WEB_ANSWER,
-            manager.subscribe(users[0], SDP_WEB_OFFER, pid));
+            manager.subscribe(users[0], "webcam", SDP_WEB_OFFER, pid));
       }
     }
     assertThat(manager.getSubscribers(roomx).size(), is(users.length - 1));
@@ -1355,7 +1355,7 @@ public class RoomManagerTest {
       };
     }
 
-    Set<UserParticipant> existingPeers = manager.joinRoom(user, room, false, webParticipant, kcsi,
+    Set<UserParticipant> existingPeers = manager.joinRoom(user,  "webcam", room, false, webParticipant, kcsi,
         pid);
 
     // verifies create media pipeline was called once

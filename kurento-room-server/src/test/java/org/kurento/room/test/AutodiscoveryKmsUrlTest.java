@@ -127,7 +127,7 @@ public class AutodiscoveryKmsUrlTest {
         @Override
         public void run() {
           roomManager
-              .joinRoom("userName", "roomName", false, false, kcSessionInfo, "participantId");
+              .joinRoom("userName", "streamId", "roomName", false, false, kcSessionInfo, "participantId");
         }
       }).start();
 

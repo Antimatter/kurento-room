@@ -16,6 +16,8 @@
 
 package org.kurento.room.api.pojo;
 
+import java.util.ArrayList;
+
 /**
  * This POJO holds information about a room participant.
  *
@@ -25,19 +27,39 @@ package org.kurento.room.api.pojo;
 public class UserParticipant {
   private String participantId;
   private String userName;
+  private ArrayList<String> streamIds = new ArrayList<String>();
+  private ArrayList<Boolean> streamings = new ArrayList<Boolean>();
   private boolean streaming = false;
 
-  public UserParticipant(String participantId, String userName, boolean streaming) {
+  public UserParticipant(String participantId, String userName, ArrayList<String> streamIds, ArrayList<Boolean> streamings) {
     super();
     this.participantId = participantId;
     this.userName = userName;
-    this.streaming = streaming;
+    this.streamIds = streamIds;
+    this.streamings = streamings;
+    //this.streaming = streaming;
   }
 
   public UserParticipant(String participantId, String userName) {
     super();
     this.participantId = participantId;
     this.userName = userName;
+  }
+  
+  public int getStreamSize() {
+	  return streamIds.size();
+  }
+  
+  public String getStreamId(int i) {
+	  return streamIds.get(i);
+  }
+  
+  public ArrayList<String> getStreamIds() {
+	  return streamIds;
+  }
+  
+  public ArrayList<Boolean> getStreaming() {
+	  return streamings;
   }
 
   public String getParticipantId() {
@@ -58,6 +80,10 @@ public class UserParticipant {
 
   public boolean isStreaming() {
     return streaming;
+  }
+  
+  public boolean isStreaming(int i) {
+	  return streamings.get(i);
   }
 
   public void setStreaming(boolean streaming) {
@@ -116,7 +142,13 @@ public class UserParticipant {
     if (userName != null) {
       builder.append("userName=").append(userName).append(", ");
     }
-    builder.append("streaming=").append(streaming).append("]");
+    if (streamIds != null) {
+    	builder.append("streams=");
+    	for(int i=0; i<streamIds.size(); i++) {
+    		builder.append("id:").append(streamIds.get(i)).append(" streaming:").append(streamings.get(i)).append(", ");
+    	}
+    }
+    //builder.append("streaming=").append(streaming).append("]");
     return builder.toString();
   }
 }
