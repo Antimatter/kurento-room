@@ -71,7 +71,10 @@ kurento_room.controller('loginController', function ($scope, $http, ServiceParti
                 thresholdSpeaker: $scope.thresholdSpeaker 
             });
 
+            ServiceRoom.setRoom(room);
+
             var localStream = kurento.Stream(room, {
+                id: "webcam",
                 audio: true,
                 video: true,
                 data: false
@@ -79,19 +82,26 @@ kurento_room.controller('loginController', function ($scope, $http, ServiceParti
 
             localStream.addEventListener("access-accepted", function () {
                 room.addEventListener("room-connected", function (roomEvent) {
-                	var streams = roomEvent.streams;
+                	//var streams = roomEvent.streams;
+                    var participants = roomEvent.participants;
                 	if (displayPublished ) {
                 		localStream.subscribeToMyRemote();
                 	}
                 	localStream.publish();
                     ServiceRoom.setLocalStream(localStream.getWebRtcPeer());
-                    for (var i = 0; i < streams.length; i++) {
-                        ServiceParticipant.addParticipant(streams[i]);
+                    // for (var i = 0; i < streams.length; i++) {
+                    //     ServiceParticipant.addParticipant(streams[i]);
+                    // }
+                    for (var i=0; i < participants.length; i++) {
+                        ServiceParticipant.addParticipant(participants[i]);
                     }
+
+                    console.debug("addLocalParticipant");
+                    ServiceParticipant.addLocalParticipant(room.getLocalParticipant(), localStream);
                 });
 
                 room.addEventListener("stream-published", function (streamEvent) {
-                	 ServiceParticipant.addLocalParticipant(localStream);
+                	//  ServiceParticipant.addLocalParticipant(localStream);
                 	 if (mirrorLocal && localStream.displayMyRemote()) {
                 		 var localVideo = kurento.Stream(room, {
                              video: true,
@@ -99,15 +109,20 @@ kurento_room.controller('loginController', function ($scope, $http, ServiceParti
                          });
                 		 localVideo.mirrorLocalStream(localStream.getWrStream());
                 		 ServiceParticipant.addLocalMirror(localVideo);
-                	 }
+                	 } else if (streamEvent.stream !== localStream) {
+                         ServiceParticipant.addStream(streamEvent.participant, streamEvent.stream);
+                     }
                 });
                 
                 room.addEventListener("stream-added", function (streamEvent) {
-                    ServiceParticipant.addParticipant(streamEvent.stream);
+                    console.debug("handle event stream-added");
+                    ServiceParticipant.addStream(streamEvent.participant, streamEvent.stream);
+                    //ServiceParticipant.addParticipant(streamEvent.stream);
                 });
 
                 room.addEventListener("stream-removed", function (streamEvent) {
-                    ServiceParticipant.removeParticipantByStream(streamEvent.stream);
+                    ServiceParticipant.removeStream(streamEvent.participantId, streamEvent.stream.getID());
+                    //ServiceParticipant.removeParticipantByStream(streamEvent.stream);
                 });
 
                 room.addEventListener("newMessage", function (msg) {

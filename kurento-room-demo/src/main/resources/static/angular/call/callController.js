@@ -9,6 +9,48 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
     $scope.userName = ServiceRoom.getUserName();
     $scope.participants = ServiceParticipant.getParticipants();
     $scope.kurento = ServiceRoom.getKurento();
+    $scope.screenShareEnabled = false;
+
+    $scope.screenShare = function () {
+        if ($scope.screenShareEnabled == true) {
+            $scope.screenShareEnabled = false;
+            var localParticipant = ServiceParticipant.getLocalParticipant();
+            var stream = localParticipant.getStream("desktop");
+            if (!localParticipant || !stream) {
+                LxNotificationService.alert('Error!', "Not connected yet", 'Ok', function (answer) {
+                });
+                return false;
+            }
+            var kmsStream = stream.stream();
+            ServiceParticipant.disconnectStream(localParticipant, stream.getName());
+            ServiceRoom.getKurento().disconnectParticipant(kmsStream);
+        } else {
+            $scope.screenShareEnabled = true;
+            var kurento = $scope.kurento;
+            var room = ServiceRoom.getRoom();
+
+            var screenStream = kurento.Stream(room, {
+                id: 'desktop',
+                audio: false,
+                video: true,
+                data: false
+            });
+
+            screenStream.addEventListener("access-accepted", function () {
+                screenStream.publish();
+            });
+
+            screenStream.addEventListener("access-denied", function () {
+                ServiceParticipant.showError($window, LxNotificationService, {
+                    error: {
+                        message: "Access not granted to desktop! Need extension support!"
+                    }
+                });
+            });
+
+            screenStream.init();
+        }  
+    };
 
     $scope.leaveRoom = function () {
 
@@ -21,10 +63,10 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
     };
 
     window.onbeforeunload = function () {
-    	//not necessary if not connected
-    	if (ServiceParticipant.isConnected()) {
-    		ServiceRoom.getKurento().close();
-    	}
+        //not necessary if not connected
+        if (ServiceParticipant.isConnected()) {
+            ServiceRoom.getKurento().close();
+        }
     };
 
 
@@ -36,10 +78,10 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
             Fullscreen.all();
 
     };
-    
+
     $scope.disableMainSpeaker = function (value) {
 
-    	var element = document.getElementById("buttonMainSpeaker");
+        var element = document.getElementById("buttonMainSpeaker");
         if (element.classList.contains("md-person")) { //on
             element.classList.remove("md-person");
             element.classList.add("md-recent-actors");
@@ -80,18 +122,18 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
         }
     };
 
-    $scope.disconnectStream = function() {
-    	var localStream = ServiceRoom.getLocalStream();
-    	var participant = ServiceParticipant.getMainParticipant();
-    	if (!localStream || !participant) {
-    		LxNotificationService.alert('Error!', "Not connected yet", 'Ok', function(answer) {
+    $scope.disconnectStream = function () {
+        var localStream = ServiceRoom.getLocalStream();
+        var participant = ServiceParticipant.getMainParticipant();
+        if (!localStream || !participant) {
+            LxNotificationService.alert('Error!', "Not connected yet", 'Ok', function (answer) {
             });
-    		return false;
-    	}
-    	ServiceParticipant.disconnectParticipant(participant);
-    	ServiceRoom.getKurento().disconnectParticipant(participant.getStream());
+            return false;
+        }
+        ServiceParticipant.disconnectParticipant(participant);
+        ServiceRoom.getKurento().disconnectParticipant(participant.getStream());
     }
-    
+
     //chat
     $scope.message;
 
@@ -106,23 +148,23 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
     $scope.toggleChat = function () {
         var selectedEffect = "slide";
         // most effect types need no options passed by default
-        var options = {direction: "right"};
+        var options = { direction: "right" };
         if ($("#effect").is(':visible')) {
-            $("#content").animate({width: '100%'}, 500);
+            $("#content").animate({ width: '100%' }, 500);
         } else {
-            $("#content").animate({width: '80%'}, 500);
+            $("#content").animate({ width: '80%' }, 500);
         }
         // run the effect
         $("#effect").toggle(selectedEffect, options, 500);
     };
-    
+
     $scope.showHat = function () {
-    	var targetHat = false;
-    	var offImgStyle = "md-mood";
-    	var offColorStyle = "btn--deep-purple";
-    	var onImgStyle = "md-face-unlock";
-    	var onColorStyle = "btn--purple";
-    	var element = document.getElementById("hatButton");
+        var targetHat = false;
+        var offImgStyle = "md-mood";
+        var offColorStyle = "btn--deep-purple";
+        var onImgStyle = "md-face-unlock";
+        var onColorStyle = "btn--purple";
+        var element = document.getElementById("hatButton");
         if (element.classList.contains(offImgStyle)) { //off
             element.classList.remove(offImgStyle);
             element.classList.remove(offColorStyle);
@@ -136,19 +178,19 @@ kurento_room.controller('callController', function ($scope, $window, ServicePart
             element.classList.add(offColorStyle);
             targetHat = false;
         }
-    	
+
         var hatTo = targetHat ? "on" : "off";
-    	console.log("Toggle hat to " + hatTo);
-    	ServiceRoom.getKurento().sendCustomRequest({hat: targetHat}, function (error, response) {
-    		if (error) {
+        console.log("Toggle hat to " + hatTo);
+        ServiceRoom.getKurento().sendCustomRequest({ hat: targetHat }, function (error, response) {
+            if (error) {
                 console.error("Unable to toggle hat " + hatTo, error);
-                LxNotificationService.alert('Error!', "Unable to toggle hat " + hatTo, 
-                		'Ok', function(answer) {});
-        		return false;
+                LxNotificationService.alert('Error!', "Unable to toggle hat " + hatTo,
+                    'Ok', function (answer) { });
+                return false;
             } else {
-            	console.debug("Response on hat toggle", response);
+                console.debug("Response on hat toggle", response);
             }
-    	});
+        });
     };
 });
 

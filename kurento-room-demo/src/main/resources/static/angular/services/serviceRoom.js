@@ -5,6 +5,7 @@
 kurento_room.service('ServiceRoom', function () {
 
     var kurento;
+    var kurentoRoom;
     var roomName;
     var userName;
     var localStream;
@@ -13,6 +14,10 @@ kurento_room.service('ServiceRoom', function () {
         return kurento;
     };
 
+    this.getRoom = function () {
+        return kurentoRoom;
+    }
+
     this.getRoomName = function () {
         return roomName;
     };
@@ -20,6 +25,10 @@ kurento_room.service('ServiceRoom', function () {
     this.setKurento = function (value) {
         kurento = value;
     };
+
+    this.setRoom = function (value) {
+        kurentoRoom = value;
+    }
 
     this.setRoomName = function (value) {
         roomName = value;
