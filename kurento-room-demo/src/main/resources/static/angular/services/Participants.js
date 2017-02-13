@@ -250,7 +250,10 @@ function Participants() {
             });
         }
 
-        //updateMainParticipant(participant);
+        var keys = Object.keys(streams);
+        if(keys.length > 0) {
+            updateMainParticipant(participant, keys[0]);
+        }
 
         return participant;
     };
@@ -270,7 +273,7 @@ function Participants() {
 
             updateVideoStyle();
 
-            //updateMainParticipant(participant, stream.getID());
+            updateMainParticipant(participant, stream.getID());
         }
     }
 

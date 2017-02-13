@@ -1,41 +1,60 @@
 /*
  * @author Micael Gallego (micael.gallego@gmail.com)
- * @author Raquel Díaz González
+ * @author Radu Tom Vlad
  */
 
-kurento_room.controller('loginController', function ($scope, $http, ServiceParticipant, $window, ServiceRoom, LxNotificationService) {
+kurento_room.controller('loginController', function($scope, $rootScope, $http, 
+    $window, $routeParams, ServiceParticipant, ServiceRoom, LxNotificationService) {
 
-	var options;
+    $scope.existingRoomName = false;
+    $scope.roomPickerClass = 'grid__col6';
+    $scope.roomPickerLabel = 'Room';
+    var name = $routeParams["existingRoomName"];
+    if (name && name.length > 0) {
+        var str = name.split("@");
+        if(str.length == 2) {
+            $scope.room = {
+                userName: str[0],
+                roomName: str[1]
+            };
+        } else {
+            $scope.room = {roomName: name};
+        }
+        $scope.existingRoomName = true;
+        $scope.roomPickerClass = 'grid__col';
+        $scope.roomPickerLabel = 'Fixed room name';
+    }
 
-    $http.get('/getAllRooms').
-            success(function (data, status, headers, config) {
-                console.log(JSON.stringify(data));
-                $scope.listRooms = data;
-            }).
-            error(function (data, status, headers, config) {
-            });
+    $scope.nameValidation = function(name) {
+        return /^[a-zA-Z0-9]+$/.test(name);
+    };
 
-    $http.get('/getClientConfig').
-             success(function (data, status, headers, config) {
-            	console.log(JSON.stringify(data));
-            	$scope.clientConfig = data;
-             }).
-             error(function (data, status, headers, config) {
-             });
+    $rootScope.isParticipant = false;
     
-    $http.get('/getUpdateSpeakerInterval').
-	    success(function (data, status, headers, config) {
-	        $scope.updateSpeakerInterval = data
-	    }).
-	    error(function (data, status, headers, config) {
-	});
+    var contextpath = (location.pathname == '/') ? '' : location.pathname;
 
-    $http.get('/getThresholdSpeaker').
-    	success(function (data, status, headers, config) {
-    		$scope.thresholdSpeaker = data
-		}).
-		error(function (data, status, headers, config) {
-	});
+    $rootScope.contextpath = (location.pathname == '/') ? '' : location.pathname;
+
+    var roomsFragment = $rootScope.contextpath.endsWith('/') ? '#/rooms/' : '/#/rooms/';
+
+    $http.get($rootScope.contextpath + '/getAllRooms').success(function(data, status, headers, config) {
+        console.log(JSON.stringify(data));
+        $scope.listRooms = data;
+    }).error(function(data, status, headers, config) {});
+
+    $http.get($rootScope.contextpath + '/getClientConfig').success(function(data, status, headers, config) {
+        console.log(JSON.stringify(data));
+        $scope.clientConfig = data;
+    }).error(function(data, status, headers, config) {});
+
+    $http.get($rootScope.contextpath + '/getUpdateSpeakerInterval').success(function(data, status, headers, config) {
+        $scope.updateSpeakerInterval = data
+    }).error(function(data, status, headers, config) {});
+
+    $http.get($rootScope.contextpath + '/getThresholdSpeaker').success(function(data, status, headers, config) {
+        $scope.thresholdSpeaker = data
+    }).error(function(data, status, headers, config) {});
+
     
     $scope.register = function (room) {
     	
@@ -45,6 +64,14 @@ kurento_room.controller('loginController', function ($scope, $http, ServiceParti
     				message:"Username and room fields are both required"
     			}
     		});
+
+        var config = {loopback: false,
+                      loopbackAndLocal: false};
+        if(!$scope.clientConfig) {
+            $scope.clientConfig = config;
+            $scope.updateSpeakerInterval = 1000;
+            $scope.thresholdSpeaker = 10;
+        }
     	
         $scope.userName = room.userName;
         $scope.roomName = room.roomName;
@@ -190,14 +217,22 @@ kurento_room.controller('loginController', function ($scope, $http, ServiceParti
         ServiceRoom.setRoomName($scope.roomName);
         ServiceRoom.setUserName($scope.userName);
 
+        $rootScope.isParticipant = true;
+
         //redirect to call
         $window.location.href = '#/call';
     };
     $scope.clear = function () {
         $scope.room = "";
-        $scope.userName = "";
-        $scope.roomName = "";
+        $scope.updateRoomUrl();
     };
+    $scope.updateRoomUrl = function(roomName) {
+        $scope.roomUrl = (roomName && roomName.length > 0) ? location.protocol + '//' + location.host + $rootScope.contextpath + roomsFragment + roomName : '';
+    };
+
+    if($scope.existingRoomName && $scope.room && $scope.room.userName && $scope.room.roomName) {
+        $scope.register($scope.room);
+    }
 });
 
 
