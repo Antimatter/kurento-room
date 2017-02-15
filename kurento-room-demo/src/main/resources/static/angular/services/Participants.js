@@ -21,19 +21,19 @@ function MediaStream(_stream) {
     this.videoElement;
     this.thumbnailId;
 
-    this.stream = function() {
+    this.stream = function () {
         return that.kmsStream;
     }
 
-    this.getName = function() {
+    this.getName = function () {
         return that.name;
     }
 
-    this.getVideoElement = function() {
+    this.getVideoElement = function () {
         return that.videoElement;
     }
 
-    this.getThumbId = function() {
+    this.getThumbId = function () {
         return that.thumbnailId;
     }
 
@@ -67,7 +67,7 @@ function MediaStream(_stream) {
         that.videoElement.appendChild(speakerSpeakingVolumen);
 
         document.getElementById("participants").appendChild(that.videoElement);
-        console.debug("playThumbnail ", that.thumbnailId, " stream:"+that.name+" kmsStream:"+that.kmsStream.getGlobalID());
+        console.debug("playThumbnail ", that.thumbnailId, " stream:" + that.name + " kmsStream:" + that.kmsStream.getGlobalID());
         that.kmsStream.playThumbnail(that.thumbnailId);
     }
 
@@ -83,10 +83,16 @@ function AppParticipant(participant) {
 
     var that = this;
 
+    console.debug("new participant " + name);
     var input_streams = participant.getStreams();
     for (var key in input_streams) {
+        console.debug("part stream:" + key);
         if (key != null)
             streams[key] = new MediaStream(input_streams[key]);
+    }
+
+    this.isEmpty = function () {
+        return Object.keys(streams).length===0;
     }
 
     this.addStream = function (stream) {
@@ -107,6 +113,7 @@ function AppParticipant(participant) {
     }
 
     this.setMain = function (streamId) {
+        console.log("setMain part:" + name + " stream:" + streamId);
 
         var mainVideo = document.getElementById("main-video");
         var oldVideo = mainVideo.firstChild;
@@ -193,7 +200,7 @@ function Participants() {
         var numStreams = 0;
         for (key in participants) {
             var streams = participants[key].getStreams();
-            if(streams != null)
+            if (streams != null)
                 numStreams += Object.keys(streams).length;
         }
         var maxStreamsWithMaxWidth = 98 / MAX_WIDTH;
@@ -210,7 +217,9 @@ function Participants() {
     };
 
     function updateMainParticipant(participant, streamId) {
+        console.debug("updateMainParticipant");
         if (mainParticipant) {
+            console.debug("remove main part:" + mainParticipant.getName());
             mainParticipant.removeMain(mainStreamId);
         }
         mainParticipant = participant;
@@ -219,6 +228,7 @@ function Participants() {
     }
 
     this.addLocalParticipant = function (part, stream) {
+        console.debug("addLocalParticipant");
         localParticipant = that.addParticipant(part);
         mainParticipant = localParticipant;
         mainStreamId = "webcam";
@@ -236,14 +246,14 @@ function Participants() {
     };
 
     this.addParticipant = function (part) {
-
+        console.debug("addParticipant")
         var participant = new AppParticipant(part);
         participants[participant.getName()] = participant;
 
         updateVideoStyle();
 
         var streams = participant.getStreams();
-        console.log("New AppParticipant streams: ", streams);
+        //console.log("New AppParticipant streams: ", streams);
         for (key in streams) {
             $(streams[key].getVideoElement()).click(function (e) {
                 updateMainParticipant(participant, key);
@@ -251,7 +261,7 @@ function Participants() {
         }
 
         var keys = Object.keys(streams);
-        if(keys.length > 0) {
+        if (keys.length > 0) {
             updateMainParticipant(participant, keys[0]);
         }
 
@@ -261,7 +271,7 @@ function Participants() {
     this.addStream = function (part, stream) {
         var participant = participants[part.getID()];
         if (participant == undefined || participant == null) {
-            console.log("There is no participant for stream "+stream.getGlobalID());
+            console.log("There is no participant for stream " + stream.getGlobalID());
             this.addParticipant(part);
             return;
         } else {
@@ -292,35 +302,39 @@ function Participants() {
     }
 
     this.removeStream = function (partId, streamId) {
+        console.debug("removeStream " + partId + " " + streamId);
         var participant = participants[partId];
         var stream = participant.getStream(streamId);
         participant.removeStream(streamId);
 
-        if (participant === mainParticipant && streamId == mainStreamId) {
-            var streams = participant.getStreams();
+        var tmp_keys = Object.keys(participant.getStreams());
+        console.debug("Left streams:", tmp_keys);
+
+        if (participant === mainParticipant && streamId === mainStreamId) {
             var keys = Object.keys(participant.getStreams());
             if (keys.length == 0) {
                 var bMatched = false;
                 for (key in participants) {
-                    if (participants[key] != mainParticipant &&
-                        participants[key] != localParticipant &&
-                        participants[key] != mirrorParticipant) {
+                    if (participants[key] !== mainParticipant &&
+                        participants[key] !== localParticipant &&
+                        participants[key] !== mirrorParticipant &&
+                        !participants[key].isEmpty()) {
                         mainParticipant = participants[key];
                         bMatched = true;
                         break;
                     }
                 }
                 if (bMatched == false) {
-                    if (mirrorParticipant != null) {
+                    if (typeof (mirrorParticipant) !== undefined && mirrorParticipant !== null) {
                         mainParticipant = mirrorParticipant;
                     } else {
                         mainParticipant = localParticipant;
                     }
-                    keys = Object.keys(mainParticipant.getStreams());
-                    mainStreamId = keys[0];
                 }
+                ids = Object.keys(mainParticipant.getStreams());
+                mainStreamId = ids[0];
             } else {
-                mainStreamId = keys[0];
+                mainStreamId = ids[0];
             }
 
             updateVideoStyle();
@@ -329,6 +343,7 @@ function Participants() {
     }
 
     this.removeParticipant = function (partId) {
+        console.debug("removeParticipant");
         var participant = participants[partId];
         delete participants[partId];
         participant.remove();
@@ -404,6 +419,15 @@ function Participants() {
 
     this.disableMainSpeaker = function () {
         mainSpeaker = false;
+    }
+
+    this.clean = function () {
+        mainParticipant = null;
+        mainStreamId = null;
+        localParticipant = null;
+        mirrorParticipant = null;
+        participants = {};
+        roomName = null;
     }
 
     // Open the chat automatically when a message is received

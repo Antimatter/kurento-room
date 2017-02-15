@@ -6,6 +6,7 @@
 kurento_room.controller('loginController', function($scope, $rootScope, $http, 
     $window, $routeParams, ServiceParticipant, ServiceRoom, LxNotificationService) {
 
+    ServiceParticipant.clean();
     $scope.existingRoomName = false;
     $scope.roomPickerClass = 'grid__col6';
     $scope.roomPickerLabel = 'Room';
@@ -116,15 +117,14 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
                 	}
                 	localStream.publish();
                     ServiceRoom.setLocalStream(localStream.getWebRtcPeer());
+                    console.debug("addLocalParticipant");
+                    ServiceParticipant.addLocalParticipant(room.getLocalParticipant(), localStream);
                     // for (var i = 0; i < streams.length; i++) {
                     //     ServiceParticipant.addParticipant(streams[i]);
                     // }
                     for (var i=0; i < participants.length; i++) {
                         ServiceParticipant.addParticipant(participants[i]);
                     }
-
-                    console.debug("addLocalParticipant");
-                    ServiceParticipant.addLocalParticipant(room.getLocalParticipant(), localStream);
                 });
 
                 room.addEventListener("stream-published", function (streamEvent) {
