@@ -83,10 +83,16 @@ function AppParticipant(participant) {
 
     var that = this;
 
+    console.debug("new participant " + name);
     var input_streams = participant.getStreams();
     for (var key in input_streams) {
+        console.debug("part stream:" + key);
         if (key != null)
             streams[key] = new MediaStream(input_streams[key]);
+    }
+
+    this.isEmpty = function () {
+        return Object.keys(streams).length===0;
     }
 
     this.addStream = function (stream) {
@@ -107,6 +113,7 @@ function AppParticipant(participant) {
     }
 
     this.setMain = function (streamId) {
+        console.log("setMain part:" + name + " stream:" + streamId);
 
         var mainVideo = document.getElementById("main-video");
         var elementChildren = mainVideo.children;
@@ -224,7 +231,9 @@ function Participants() {
     };
 
     function updateMainParticipant(participant, streamId) {
+        console.debug("updateMainParticipant");
         if (mainParticipant) {
+            console.debug("remove main part:" + mainParticipant.getName());
             mainParticipant.removeMain(mainStreamId);
         }
         mainParticipant = participant;
@@ -233,6 +242,7 @@ function Participants() {
     }
 
     this.addLocalParticipant = function (part, stream) {
+        console.debug("addLocalParticipant");
         localParticipant = that.addParticipant(part);
         //var streamId = "webcam";
         //if (streamId in localParticipant.getStreams()) {
@@ -249,14 +259,14 @@ function Participants() {
     };
 
     this.addParticipant = function (part) {
-
+        console.debug("addParticipant")
         var participant = new AppParticipant(part);
         participants[participant.getName()] = participant;
 
         updateVideoStyle();
 
         var streams = participant.getStreams();
-        console.log("New AppParticipant streams: ", streams);
+        //console.log("New AppParticipant streams: ", streams);
         for (key in streams) {
             $(streams[key].getVideoElement()).click(function (e) {
                 updateMainParticipant(participant, key);
@@ -305,38 +315,42 @@ function Participants() {
     }
 
     this.removeStream = function (partId, streamId) {
+        console.debug("removeStream " + partId + " " + streamId);
         var participant = participants[partId];
         var stream = participant.getStream(streamId);
         participant.removeStream(streamId);
 
-        if (participant === mainParticipant && streamId == mainStreamId) {
-            var streams = participant.getStreams();
+        var tmp_keys = Object.keys(participant.getStreams());
+        console.debug("Left streams:", tmp_keys);
+
+        if (participant === mainParticipant && streamId === mainStreamId) {
             var keys = Object.keys(participant.getStreams());
             var candidate;
             var candidateStreamId;
             if (keys.length == 0) {
                 var bMatched = false;
                 for (key in participants) {
-                    if (participants[key] != mainParticipant &&
-                        participants[key] != localParticipant &&
-                        participants[key] != mirrorParticipant) {
+                    if (participants[key] !== mainParticipant &&
+                        participants[key] !== localParticipant &&
+                        participants[key] !== mirrorParticipant &&
+                        !participants[key].isEmpty()) {
                         candidate = participants[key];
                         bMatched = true;
                         break;
                     }
                 }
                 if (bMatched == false) {
-                    if (mirrorParticipant != null) {
+                    if (typeof (mirrorParticipant) !== undefined && mirrorParticipant !== null) {
                         candidate = mirrorParticipant;
                     } else {
                         candidate = localParticipant;
                     }
-                    keys = Object.keys(candidate.getStreams());
-                    candidateStreamId = keys[0];
                 }
+                ids = Object.keys(candidate.getStreams());
+                candidateStreamId = ids[0];
             } else {
                 candidate = mainParticipant;
-                candidateStreamId = keys[0];
+                candidateStreamId = ids[0];
             }
 
             updateVideoStyle();
@@ -346,6 +360,7 @@ function Participants() {
     }
 
     this.removeParticipant = function (partId) {
+        console.debug("removeParticipant");
         var participant = participants[partId];
         delete participants[partId];
         participant.remove();
@@ -424,6 +439,15 @@ function Participants() {
 
     this.disableMainSpeaker = function () {
         mainSpeaker = false;
+    }
+
+    this.clean = function () {
+        mainParticipant = null;
+        mainStreamId = null;
+        localParticipant = null;
+        mirrorParticipant = null;
+        participants = {};
+        roomName = null;
     }
 
     // Open the chat automatically when a message is received
