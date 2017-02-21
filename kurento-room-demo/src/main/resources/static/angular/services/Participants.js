@@ -21,19 +21,19 @@ function MediaStream(_stream) {
     this.videoElement;
     this.thumbnailId;
 
-    this.stream = function() {
+    this.stream = function () {
         return that.kmsStream;
     }
 
-    this.getName = function() {
+    this.getName = function () {
         return that.name;
     }
 
-    this.getVideoElement = function() {
+    this.getVideoElement = function () {
         return that.videoElement;
     }
 
-    this.getThumbId = function() {
+    this.getThumbId = function () {
         return that.thumbnailId;
     }
 
@@ -67,7 +67,7 @@ function MediaStream(_stream) {
         that.videoElement.appendChild(speakerSpeakingVolumen);
 
         document.getElementById("participants").appendChild(that.videoElement);
-        console.debug("playThumbnail ", that.thumbnailId, " stream:"+that.name+" kmsStream:"+that.kmsStream.getGlobalID());
+        console.debug("playThumbnail ", that.thumbnailId, " stream:" + that.name + " kmsStream:" + that.kmsStream.getGlobalID());
         that.kmsStream.playThumbnail(that.thumbnailId);
     }
 
@@ -109,19 +109,33 @@ function AppParticipant(participant) {
     this.setMain = function (streamId) {
 
         var mainVideo = document.getElementById("main-video");
-        var oldVideo = mainVideo.firstChild;
+        var elementChildren = mainVideo.children;
+        var oldVideoList = [];
+        for (var i = 0; i < elementChildren.length; i++) {
+            if(elementChildren[i].tagName === "VIDEO") {
+                oldVideoList.push(elementChildren[i]);
+            }
+        }
+        //var oldVideo = mainVideo.firstChild; // this is wrong, the first child is the comment of html
 
         streams[streamId].stream().playOnlyVideo("main-video", streams[streamId].getThumbId());
 
         streams[streamId].getVideoElement().className += " active-video";
 
-        if (oldVideo !== null) {
-            mainVideo.removeChild(oldVideo);
+        if (oldVideoList.length > 0) {
+            //mainVideo.removeChild(oldVideo);
+            for (var i = 0; i < oldVideoList.length; i++) {
+                mainVideo.removeChild(oldVideoList[i]);
+                $(oldVideoList[i]).remove();
+            }
+            oldVideoList = null;
         }
     }
 
     this.removeMain = function (streamId) {
-        $(streams[streamId].getVideoElement()).removeClass("active-video");
+        if (streamId && streams[streamId]) {
+            $(streams[streamId].getVideoElement()).removeClass("active-video");
+        }
     }
 
     this.removeStream = function (streamId) {
@@ -143,7 +157,7 @@ function AppParticipant(participant) {
                 }
             }
         }
-        streams = null;
+        streams = {};
     }
 
     // function playVideo(streamId) {
@@ -193,7 +207,7 @@ function Participants() {
         var numStreams = 0;
         for (key in participants) {
             var streams = participants[key].getStreams();
-            if(streams != null)
+            if (streams != null)
                 numStreams += Object.keys(streams).length;
         }
         var maxStreamsWithMaxWidth = 98 / MAX_WIDTH;
@@ -220,11 +234,10 @@ function Participants() {
 
     this.addLocalParticipant = function (part, stream) {
         localParticipant = that.addParticipant(part);
-        mainParticipant = localParticipant;
-        mainStreamId = "webcam";
-        if (mainStreamId in localParticipant.getStreams()) {
-            mainParticipant.setMain(mainStreamId);
-        }
+        //var streamId = "webcam";
+        //if (streamId in localParticipant.getStreams()) {
+        //    updateMainParticipant(localParticipant, streamId);
+        //}
     };
 
     this.getLocalParticipant = function () {
@@ -251,7 +264,7 @@ function Participants() {
         }
 
         var keys = Object.keys(streams);
-        if(keys.length > 0) {
+        if (keys.length > 0) {
             updateMainParticipant(participant, keys[0]);
         }
 
@@ -261,7 +274,7 @@ function Participants() {
     this.addStream = function (part, stream) {
         var participant = participants[part.getID()];
         if (participant == undefined || participant == null) {
-            console.log("There is no participant for stream "+stream.getGlobalID());
+            console.log("There is no participant for stream " + stream.getGlobalID());
             this.addParticipant(part);
             return;
         } else {
@@ -299,32 +312,36 @@ function Participants() {
         if (participant === mainParticipant && streamId == mainStreamId) {
             var streams = participant.getStreams();
             var keys = Object.keys(participant.getStreams());
+            var candidate;
+            var candidateStreamId;
             if (keys.length == 0) {
                 var bMatched = false;
                 for (key in participants) {
                     if (participants[key] != mainParticipant &&
                         participants[key] != localParticipant &&
                         participants[key] != mirrorParticipant) {
-                        mainParticipant = participants[key];
+                        candidate = participants[key];
                         bMatched = true;
                         break;
                     }
                 }
                 if (bMatched == false) {
                     if (mirrorParticipant != null) {
-                        mainParticipant = mirrorParticipant;
+                        candidate = mirrorParticipant;
                     } else {
-                        mainParticipant = localParticipant;
+                        candidate = localParticipant;
                     }
-                    keys = Object.keys(mainParticipant.getStreams());
-                    mainStreamId = keys[0];
+                    keys = Object.keys(candidate.getStreams());
+                    candidateStreamId = keys[0];
                 }
             } else {
-                mainStreamId = keys[0];
+                candidate = mainParticipant;
+                candidateStreamId = keys[0];
             }
 
             updateVideoStyle();
-            mainParticipant.setMain(mainStreamId);
+            updateMainParticipant(candidate, candidateStreamId);
+            //mainParticipant.setMain(mainStreamId);
         }
     }
 
@@ -352,9 +369,11 @@ function Participants() {
         //setting main
         if (mainParticipant && mainParticipant === participant) {
             var mainIsLocal = false;
+            var candidate;
+            var candidateStreamId;
             if (localParticipant) {
                 if (participant !== localParticipant && participant !== mirrorParticipant) {
-                    mainParticipant = localParticipant;
+                    candidate = localParticipant;
                     mainIsLocal = true;
                 } else {
                     localParticipant = null;
@@ -364,19 +383,20 @@ function Participants() {
             if (!mainIsLocal) {
                 var keys = Object.keys(participants);
                 if (keys.length > 0) {
-                    mainParticipant = participants[keys[0]];
+                    candidate = participants[keys[0]];
                 } else {
-                    mainParticipant = null;
+                    candidate = null;
                 }
             }
-            if (mainParticipant) {
-                var keys = Object.keys(mainParticipant.getStreams());
+            if (candidate) {
+                var keys = Object.keys(candidate.getStreams());
                 if (keys.length > 0) {
-                    mainStreamId = keys[0];
+                    candidateStreamId = keys[0];
                 } else {
-                    mainStreamId = "webcam";
+                    candidateStreamId = "webcam";
                 }
-                mainParticipant.setMain(mainStreamId);
+                updateMainParticipant(candidate, candidateStreamId);
+                //mainParticipant.setMain(mainStreamId);
                 console.log("Main video from " + mainParticipant.getName() + " " + streamId);
             } else
                 console.error("No media streams left to display");
