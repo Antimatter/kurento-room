@@ -281,6 +281,27 @@ function Participants() {
         return participant;
     };
 
+    function checkExit () {
+        var numStream = 0;
+        var activeStream;
+        var part_keys = Object.keys(participants);
+        for (var i=0; i<part_keys.length; i++) {
+            if (participants[part_keys[i]] != undefined && participants[part_keys[i]] != null) {
+                var allStreams = participants[part_keys[i]].getStreams();
+                var stream_keys = Object.keys(allStreams);
+                for(var k=0; k<stream_keys.length; k++) {
+                    if(allStreams[stream_keys[k]] != undefined && allStreams[stream_keys[k]] != null) {
+                        numStream ++;
+                        activeStream = allStreams[stream_keys[k]];
+                    }
+                }
+            }
+        }
+        if(numStream <= 1) {
+            parent.parent.postMessage({message:"exit"}, "*");
+        }
+    }
+
     this.addStream = function (part, stream) {
         var participant = participants[part.getID()];
         if (participant == undefined || participant == null) {
@@ -357,6 +378,9 @@ function Participants() {
             updateMainParticipant(candidate, candidateStreamId);
             //mainParticipant.setMain(mainStreamId);
         }
+
+        // Send message to parent for exit
+        checkExit();
     }
 
     this.removeParticipant = function (partId) {
