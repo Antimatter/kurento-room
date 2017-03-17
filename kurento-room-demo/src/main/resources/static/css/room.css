@@ -192,10 +192,11 @@ video {
     padding-left: 70px;
     padding-bottom: 35px;
     padding-top: 35px;
-    background-image: url("../img/kurento.png");
+    padding-right: 40px;
+    background-image: url("../img/antimatter_logo.png");
     background-repeat: no-repeat;
     background-position: left;
-    margin: auto 0 auto 0;
+    margin: auto 80 auto 0;
 }
 
 /*.join p {

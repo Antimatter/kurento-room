@@ -3,7 +3,7 @@
  * @author Radu Tom Vlad
  */
 
-kurento_room.controller('loginController', function($scope, $rootScope, $http, 
+kurento_room.controller('loginController', function ($scope, $rootScope, $http,
     $window, $routeParams, ServiceParticipant, ServiceRoom, LxNotificationService) {
 
     ServiceParticipant.clean();
@@ -13,67 +13,91 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
     var name = $routeParams["existingRoomName"];
     if (name && name.length > 0) {
         var str = name.split("@");
-        if(str.length == 2) {
+        if (str.length == 2) {
             $scope.room = {
                 userName: str[0],
                 roomName: str[1]
             };
         } else {
-            $scope.room = {roomName: name};
+            $scope.room = { roomName: name };
         }
         $scope.existingRoomName = true;
         $scope.roomPickerClass = 'grid__col';
         $scope.roomPickerLabel = 'Fixed room name';
     }
 
-    $scope.nameValidation = function(name) {
+    $scope.nameValidation = function (name) {
         return /^[a-zA-Z0-9]+$/.test(name);
     };
 
     $rootScope.isParticipant = false;
-    
+
     var contextpath = (location.pathname == '/') ? '' : location.pathname;
 
     $rootScope.contextpath = (location.pathname == '/') ? '' : location.pathname;
 
     var roomsFragment = $rootScope.contextpath.endsWith('/') ? '#/rooms/' : '/#/rooms/';
 
-    $http.get($rootScope.contextpath + '/getAllRooms').success(function(data, status, headers, config) {
+    $http.get($rootScope.contextpath + '/getAllRooms').success(function (data, status, headers, config) {
         console.log(JSON.stringify(data));
         $scope.listRooms = data;
-    }).error(function(data, status, headers, config) {});
+    }).error(function (data, status, headers, config) { });
 
-    $http.get($rootScope.contextpath + '/getClientConfig').success(function(data, status, headers, config) {
+    $http.get($rootScope.contextpath + '/getClientConfig').success(function (data, status, headers, config) {
         console.log(JSON.stringify(data));
         $scope.clientConfig = data;
-    }).error(function(data, status, headers, config) {});
+    }).error(function (data, status, headers, config) { });
 
-    $http.get($rootScope.contextpath + '/getUpdateSpeakerInterval').success(function(data, status, headers, config) {
+    $http.get($rootScope.contextpath + '/getUpdateSpeakerInterval').success(function (data, status, headers, config) {
         $scope.updateSpeakerInterval = data
-    }).error(function(data, status, headers, config) {});
+    }).error(function (data, status, headers, config) { });
 
-    $http.get($rootScope.contextpath + '/getThresholdSpeaker').success(function(data, status, headers, config) {
+    $http.get($rootScope.contextpath + '/getThresholdSpeaker').success(function (data, status, headers, config) {
         $scope.thresholdSpeaker = data
-    }).error(function(data, status, headers, config) {});
+    }).error(function (data, status, headers, config) { });
 
-    
+    var logger = function () {
+        var oldConsoleLog = null;
+        var pub = {};
+
+        pub.enableLogger = function enableLogger() {
+            if (oldConsoleLog == null)
+                return;
+
+            window['console']['log'] = oldConsoleLog;
+        };
+
+        pub.disableLogger = function disableLogger() {
+            oldConsoleLog = console.log;
+            window['console']['log'] = function () { };
+        };
+
+        return pub;
+    }();
+
+
     $scope.register = function (room) {
-    	
-    	if (!room)
-    		ServiceParticipant.showError($window, LxNotificationService, {
-    			error: {
-    				message:"Username and room fields are both required"
-    			}
-    		});
 
-        var config = {loopback: false,
-                      loopbackAndLocal: false};
-        if(!$scope.clientConfig) {
+        window['console']['log'] = function () { };
+        //logger.disableLogger();
+
+        if (!room)
+            ServiceParticipant.showError($window, LxNotificationService, {
+                error: {
+                    message: "Username and room fields are both required"
+                }
+            });
+
+        var config = {
+            loopback: false,
+            loopbackAndLocal: false
+        };
+        if (!$scope.clientConfig) {
             $scope.clientConfig = config;
             $scope.updateSpeakerInterval = 1000;
             $scope.thresholdSpeaker = 10;
         }
-    	
+
         $scope.userName = room.userName;
         $scope.roomName = room.roomName;
 
@@ -83,7 +107,7 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
         var displayPublished = $scope.clientConfig.loopbackRemote || false;
         //also show local stream when display my remote
         var mirrorLocal = $scope.clientConfig.loopbackAndLocal || false;
-        
+
         var kurento = KurentoRoom(wsUri, function (error, kurento) {
 
             if (error)
@@ -96,7 +120,7 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
                 room: $scope.roomName,
                 user: $scope.userName,
                 updateSpeakerInterval: $scope.updateSpeakerInterval,
-                thresholdSpeaker: $scope.thresholdSpeaker 
+                thresholdSpeaker: $scope.thresholdSpeaker
             });
 
             ServiceRoom.setRoom(room);
@@ -110,37 +134,37 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
 
             localStream.addEventListener("access-accepted", function () {
                 room.addEventListener("room-connected", function (roomEvent) {
-                	//var streams = roomEvent.streams;
+                    //var streams = roomEvent.streams;
                     var participants = roomEvent.participants;
-                	if (displayPublished ) {
-                		localStream.subscribeToMyRemote();
-                	}
-                	localStream.publish();
+                    if (displayPublished) {
+                        localStream.subscribeToMyRemote();
+                    }
+                    localStream.publish();
                     ServiceRoom.setLocalStream(localStream.getWebRtcPeer());
                     console.debug("addLocalParticipant");
                     ServiceParticipant.addLocalParticipant(room.getLocalParticipant(), localStream);
                     // for (var i = 0; i < streams.length; i++) {
                     //     ServiceParticipant.addParticipant(streams[i]);
                     // }
-                    for (var i=0; i < participants.length; i++) {
+                    for (var i = 0; i < participants.length; i++) {
                         ServiceParticipant.addParticipant(participants[i]);
                     }
                 });
 
                 room.addEventListener("stream-published", function (streamEvent) {
-                	//  ServiceParticipant.addLocalParticipant(localStream);
-                	 if (mirrorLocal && localStream.displayMyRemote()) {
-                		 var localVideo = kurento.Stream(room, {
-                             video: true,
-                             id: "localStream"
-                         });
-                		 localVideo.mirrorLocalStream(localStream.getWrStream());
-                		 ServiceParticipant.addLocalMirror(localVideo);
-                	 } else if (streamEvent.stream !== localStream) {
-                         ServiceParticipant.addStream(streamEvent.participant, streamEvent.stream);
-                     }
+                    //  ServiceParticipant.addLocalParticipant(localStream);
+                    if (mirrorLocal && localStream.displayMyRemote()) {
+                        var localVideo = kurento.Stream(room, {
+                            video: true,
+                            id: "localStream"
+                        });
+                        localVideo.mirrorLocalStream(localStream.getWrStream());
+                        ServiceParticipant.addLocalMirror(localVideo);
+                    } else if (streamEvent.stream !== localStream) {
+                        ServiceParticipant.addStream(streamEvent.participant, streamEvent.stream);
+                    }
                 });
-                
+
                 room.addEventListener("stream-added", function (streamEvent) {
                     console.debug("handle event stream-added");
                     ServiceParticipant.addStream(streamEvent.participant, streamEvent.stream);
@@ -162,52 +186,52 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
 
                 room.addEventListener("error-media", function (msg) {
                     ServiceParticipant.alertMediaError($window, LxNotificationService, msg.error, function (answer) {
-                    	console.warn("Leave room because of error: " + answer);
-                    	if (answer) {
-                    		kurento.close(true);
-                    	}
+                        console.warn("Leave room because of error: " + answer);
+                        if (answer) {
+                            kurento.close(true);
+                        }
                     });
                 });
-                
+
                 room.addEventListener("room-closed", function (msg) {
-                	if (msg.room !== $scope.roomName) {
-                		console.error("Closed room name doesn't match this room's name", 
-                				msg.room, $scope.roomName);
-                	} else {
-                		kurento.close(true);
-                		ServiceParticipant.forceClose($window, LxNotificationService, 'Room '
-                			+ msg.room + ' has been forcibly closed from server');
-                	}
+                    if (msg.room !== $scope.roomName) {
+                        console.error("Closed room name doesn't match this room's name",
+                            msg.room, $scope.roomName);
+                    } else {
+                        kurento.close(true);
+                        ServiceParticipant.forceClose($window, LxNotificationService, 'Room '
+                            + msg.room + ' has been forcibly closed from server');
+                    }
                 });
-                
-                room.addEventListener("lost-connection", function(msg) {
+
+                room.addEventListener("lost-connection", function (msg) {
                     kurento.close(true);
                     ServiceParticipant.forceClose($window, LxNotificationService,
-                      'Lost connection with room "' + msg.room +
-                      '". Please try reloading the webpage...');
-                  });
-                
+                        'Lost connection with room "' + msg.room +
+                        '". Please try reloading the webpage...');
+                });
+
                 room.addEventListener("stream-stopped-speaking", function (participantId) {
                     ServiceParticipant.streamStoppedSpeaking(participantId);
-                 });
+                });
 
-                 room.addEventListener("stream-speaking", function (participantId) {
+                room.addEventListener("stream-speaking", function (participantId) {
                     ServiceParticipant.streamSpeaking(participantId);
-                 });
+                });
 
-                 room.addEventListener("update-main-speaker", function (participantId) {
-                     ServiceParticipant.updateMainSpeaker(participantId);
-                  });
+                room.addEventListener("update-main-speaker", function (participantId) {
+                    ServiceParticipant.updateMainSpeaker(participantId);
+                });
 
                 room.connect();
             });
 
             localStream.addEventListener("access-denied", function () {
-            	ServiceParticipant.showError($window, LxNotificationService, {
-            		error : {
-            			message : "Access not granted to camera and microphone"
-            				}
-            	});
+                ServiceParticipant.showError($window, LxNotificationService, {
+                    error: {
+                        message: "Access not granted to camera and microphone"
+                    }
+                });
             });
             localStream.init();
         });
@@ -226,11 +250,11 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
         $scope.room = "";
         $scope.updateRoomUrl();
     };
-    $scope.updateRoomUrl = function(roomName) {
+    $scope.updateRoomUrl = function (roomName) {
         $scope.roomUrl = (roomName && roomName.length > 0) ? location.protocol + '//' + location.host + $rootScope.contextpath + roomsFragment + roomName : '';
     };
 
-    if($scope.existingRoomName && $scope.room && $scope.room.userName && $scope.room.roomName) {
+    if ($scope.existingRoomName && $scope.room && $scope.room.userName && $scope.room.roomName) {
         $scope.register($scope.room);
     }
 });
