@@ -298,7 +298,7 @@ function Participants() {
             }
         }
         if(numStream <= 1) {
-            parent.parent.postMessage({message:"exit"}, "*");
+	    parent.postMessage({message:"system_hangup"}, "*");
         }
     }
 
