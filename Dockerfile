@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # install wget
 RUN apt-get update -y
-RUN apt-get install -y wget
+RUN apt-get install -y wget unzip
 
 RUN echo "deb http://ubuntu.kurento.org trusty kms6" | tee /etc/apt/sources.list.d/kurento.list
 RUN wget -O - http://ubuntu.kurento.org/kurento.gpg.key | apt-key add -
