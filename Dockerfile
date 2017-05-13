@@ -56,4 +56,4 @@ RUN mkdir -p /usr/src/kurento
 COPY . /usr/src/kurento/
 
 RUN cd /usr/src/kurento && mvn clean package -am -pl kurento-room-demo -DskipTests
-RUN mkdir -p /usr/app/kurento && unzip kurento-room-demo/target/kurento-room-demo-6.6.0.zip -d /usr/app/kurento
+RUN mkdir -p /usr/app/kurento && unzip /usr/src/kurento/kurento-room-demo/target/kurento-room-demo-6.6.0.zip -d /usr/app/kurento
