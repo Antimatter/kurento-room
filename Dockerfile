@@ -57,5 +57,6 @@ COPY . /usr/src/kurento/
 
 RUN cd /usr/src/kurento && mvn clean package -am -pl kurento-room-demo -DskipTests
 RUN mkdir -p /usr/app/kurento && unzip /usr/src/kurento/kurento-room-demo/target/kurento-room-demo-6.6.0.zip -d /usr/app/kurento
-RUN /usr/app/kurento/kurento-room-demo-6.6.0/bin/install.sh
+#RUN /usr/app/kurento/kurento-room-demo-6.6.0/bin/install.sh
 RUN rm -rf /usr/src/kurento
+ENTRYPOINT service start kurento-media-server-6.0 && /usr/app/kurento/kurento-room-demo-6.6.0/bin/start.sh
